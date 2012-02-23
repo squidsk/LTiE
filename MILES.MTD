@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MILES SYSTEM "MILES.dtd">
+<MILES>
+	<SESSION_INFO>
+		<SESSION_ID>
+			1327716847642
+		</SESSION_ID>
+		<STUDENT_ID>
+			201356372
+		</STUDENT_ID>
+		<ASSIGNMENT>
+			asg2
+		</ASSIGNMENT>
+	</SESSION_INFO>
+	<SESSION_DATA>
+		<COMPILE_INSTANCE>
+			<TIME>
+				1327716858967
+			</TIME>
+			<FILES>
+				<FILE>
+					<NAME>TestClass.java</NAME>
+					<TYPES>
+						<TYPE name="TestClass">
+							<METHODS>
+								<METHOD name="TestClass">
+									<SIGNATURE>()V</SIGNATURE>
+									<RETURNTYPE>V</RETURNTYPE>
+								</METHOD>
+							</METHODS>
+						</TYPE>
+					</TYPES>
+					<COMPILE_PROBLEMS>
+						<ERROR line="6">Syntax error, insert ";" to complete Statement</ERROR>
+					</COMPILE_PROBLEMS>
+					<SOURCE>
+public class TestClass {
+	public TestClass(){
+		Object o = new Object();
+		System.out.println("Hello World!");
+		System.out.println("Hello World!")
+	}
+}
+
+					</SOURCE>
+				</FILE>
+				<FILE>
+					<NAME>SampleClass.java</NAME>
+					<TYPES>
+						<TYPE name="SampleClass">
+							<METHODS>
+								<METHOD name="main">
+									<SIGNATURE>([QString;)V</SIGNATURE>
+									<RETURNTYPE>V</RETURNTYPE>
+								</METHOD>
+							</METHODS>
+						</TYPE>
+					</TYPES>
+					<COMPILE_PROBLEMS>
+						<WARNING line="8">The value of the local variable c is not used</WARNING>
+					</COMPILE_PROBLEMS>
+					<SOURCE>
+public class SampleClass {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		TestClass c = new TestClass();
+	}
+
+}
+
+					</SOURCE>
+				</FILE>
+			</FILES>
+		</COMPILE_INSTANCE>
+		<COMPILE_INSTANCE>
+			<TIME>
+				1327716860168
+			</TIME>
+			<FILES>
+				<FILE>
+					<NAME>TestClass.java</NAME>
+					<TYPES>
+						<TYPE name="TestClass">
+							<METHODS>
+								<METHOD name="TestClass">
+									<SIGNATURE>()V</SIGNATURE>
+									<RETURNTYPE>V</RETURNTYPE>
+								</METHOD>
+							</METHODS>
+						</TYPE>
+					</TYPES>
+					<COMPILE_PROBLEMS>
+						<WARNING line="4">The value of the local variable o is not used</WARNING>
+					</COMPILE_PROBLEMS>
+					<SOURCE>
+public class TestClass {
+	public TestClass(){
+		Object o = new Object();
+		System.out.println("Hello World!");
+		System.out.println("Hello World!");
+	}
+}
+
+					</SOURCE>
+				</FILE>
+				<FILE>
+					<NAME>SampleClass.java</NAME>
+					<TYPES>
+						<TYPE name="SampleClass">
+							<METHODS>
+								<METHOD name="main">
+									<SIGNATURE>([QString;)V</SIGNATURE>
+									<RETURNTYPE>V</RETURNTYPE>
+								</METHOD>
+							</METHODS>
+						</TYPE>
+					</TYPES>
+					<COMPILE_PROBLEMS>
+						<WARNING line="8">The value of the local variable c is not used</WARNING>
+					</COMPILE_PROBLEMS>
+					<SOURCE>
+public class SampleClass {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		TestClass c = new TestClass();
+	}
+
+}
+
+					</SOURCE>
+				</FILE>
+			</FILES>
+		</COMPILE_INSTANCE>
+	</SESSION_DATA>
+</MILES>

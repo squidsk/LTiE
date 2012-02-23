@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>MILES ECLIPSE PLUGIN PROGRAMMING SESSION REPORT</title>
+		<script type="text/javascript">
+			function toggleDiv(divid, callObjID){
+				if(document.getElementById(divid).style.display == 'none'){
+					document.getElementById(divid).style.display = 'block';
+					document.getElementById(callObjID).innerHTML = "Hide";
+				}else{
+					document.getElementById(divid).style.display = 'none';
+					document.getElementById(callObjID).innerHTML = "Show";
+				}
+			}
+		</script>
+		<style type="text/css">
+			body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, code, form, fieldset, legend, input, button, textarea, p, blockquote, th, td {
+				margin: 0;
+				padding: 0;
+			}
+			body {
+				color: #3E3E3E;
+				font-size: 13px;
+				line-height: 1.23;
+				margin: 0 2.5%;
+				min-width: 650px;
+				width: auto;
+			}
+			.mainHeader {
+				box-shadow: -2px 2px 2px #c8c8c8;
+				position: relative;
+				background-color: #7192a8;
+				border: 1px solid #5a7f97;
+				border-top-left-radius: 5px;
+				border-top-right-radius: 5px;
+				clear: both;
+				color: #FFFFFF;
+				float: left;
+				font: bold 12px Arial,Tahoma,Calibri,Verdana,Geneva,sans-serif;
+				margin-top: 8px;
+				width: 95%;
+			}
+			.mainBody {
+				border: 1px solid #c4c4c4;
+				border-top: 1px solid #FFFFFF;
+				background-color:#FFFFFF;
+				display: block;
+				float: left;
+				position: relative;
+				width: 95%;
+				box-shadow: -2px 2px 2px #c8c8c8;
+				font: 11px Tahoma,Calibri,Verdana,Geneva,sans-serif;
+				color: #417394;
+			}
+			.session_info_elements {
+				width: 33.33%;
+				float: left;
+			}
+			.show_hide {
+				text-decoration:none;
+				float:right;
+				font-family:Courier New, monospace;
+				margin-right:10px;
+			}
+			.subHeader {
+				margin: 8px 2.5% 0px;
+			}
+			.subBody {
+				margin: 0px 2.5% 10px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="mainHeader"><h2><span style="margin-left:10px;">MILES Session Info</span><a id="sessionShow" href="javascript:;" onclick="toggleDiv('session_info', 'sessionShow')" class="show_hide">Hide</a></h2></div>
+		<div id="session_info" class="mainBody">
+			<div class="session_info_elements"><h2 style="margin-left:10px;">Session ID: 123456789</h2></div>
+			<div class="session_info_elements"><h2>Student ID: 201201201</h2></div>
+			<div class="session_info_elements" style="float:right;"><h2>Assignment: Assignment 1</h2></div>
+		</div>
+		<div class="mainHeader"><h2><span style="margin-left:10px;">MILES Session Info</span><a id="dataShow" href="javascript:;" onclick="toggleDiv('session_data', 'dataShow')" class="show_hide">Hide</a></h2></div>
+		<div id="session_data" class="mainBody">
+			<div class="mainHeader subHeader"><h2><span style="margin-left:10px;">Compile Instances</span><a id="compileShow" href="javascript:;" onclick="toggleDiv('compile_info', 'compileShow')" class="show_hide">Hide</a></h2></div>
+			<div id="compile_info" class="mainBody subBody">
+				<div class="mainHeader subHeader"><h2><span style="margin-left:10px;">Compile Instance: 123456795</span><a href="javascript:;" class="show_hide">Hide</a></h2></div>
+				<div class="mainBody subBody">Hello World</div>
+			</div>
+		</div>
+	</body>
+</html>
