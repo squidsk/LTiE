@@ -2,6 +2,7 @@ package miles;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -24,17 +25,17 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 
 	public MILESCompilationParticipant() {}
 	
-	public void buildStarting(BuildContext[] files, boolean isBatch){
-	}
+	public void buildStarting(BuildContext[] files, boolean isBatch) {}
 	
 	public void buildFinished(IJavaProject project) {
 		try {
 			IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
-			String fileName = prefs.get("FileName", "Empty String");
+			String fileName = prefs.get("FileName", "Empty String") + ".MTD";
 			PrintWriter out = new PrintWriter(new FileWriter(fileName, true));
 			out.println("\t\t<COMPILE_INSTANCE>");
 			Calendar c = Calendar.getInstance();
-			out.println("\t\t\t<TIME>\r\n\t\t\t\t" + c.getTimeInMillis() + "\r\n\t\t\t</TIME>");
+			SimpleDateFormat format = new SimpleDateFormat("EEE, MMM d, yyyy 'at' HH:mm:ss z");
+			out.println("\t\t\t<TIME UTC=\"" + c.getTimeInMillis() + "\">\r\n\t\t\t\t" + format.format(c.getTime()) + "\r\n\t\t\t</TIME>");
 			IPackageFragment[] packages = project.getPackageFragments();
 			for(IPackageFragment aPackage : packages){
 				if(aPackage.getKind() == IPackageFragmentRoot.K_SOURCE){
@@ -47,6 +48,11 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 						out.println("\t\t\t\t\t<SOURCE>"+unit.getSource()+"\r\n\t\t\t\t\t</SOURCE>");
 						out.println("\t\t\t\t</FILE>");
 					}
+//					for(Object obj : project.getNonJavaResources()){
+//						out.println("\t\t\t\t<FILE>");
+//						out.println("\t\t\t\t\t<NAME>"+obj.getClass().getName()+"</NAME>");
+//						out.println("\t\t\t\t</FILE>");
+//					}
 					out.println("\t\t\t</FILES>");
 				}
 			}

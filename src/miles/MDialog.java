@@ -1,11 +1,24 @@
 package miles;
 
 //import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringBufferInputStream;
+import java.io.StringReader;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import javax.swing.JOptionPane;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -32,22 +45,23 @@ import org.eclipse.ui.PlatformUI;
 public class MDialog extends Dialog {
 	
 	private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-	private static final String DOC_TYPE_HEADER = "<!DOCTYPE MILES SYSTEM \"MILES.dtd\">";
+	private static final String XSL_FILE = "http://io.acad.athabascau.ca/~stevenka13/MILES.xsl";
+	//private String DOC_TYPE_HEADER = "<!DOCTYPE MILES SYSTEM \"MILES.dtd\">";
 
 	private String title;
 	private String id;
 	private String asgn;
 	private String time;
-	//private String projLoc;
+	private Calendar calendar;
 	
 	private Text idText;
 	private Text asignText;
-	//private Text projLocText;
 	
 
 	public MDialog(Shell parentShell, String dialogTitle) {
 		super(parentShell);
 		title = dialogTitle;
+		calendar = Calendar.getInstance();
 		time = String.valueOf(Calendar.getInstance().getTimeInMillis());
 	}
 	
@@ -58,7 +72,9 @@ public class MDialog extends Dialog {
 		if(buttonId == IDialogConstants.OK_ID){
 			id = idText.getText();
 			asgn = asignText.getText();
-			//projLoc = projLocText.getText();
+			setReturnCode(OK);
+		} else {
+			setReturnCode(CANCEL);
 		}
 	}
 
@@ -92,7 +108,7 @@ public class MDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				//System.out.println("OK Button Clicked");
 				if(validInput()){
-					String fileName = "MILES_"+ id + "_" + asgn + "_" + time + ".MTD";
+					String fileName = "MILES_"+ id + "_" + asgn + "_" + time;
 					
 					writeSessionInfoToFile(fileName);
 					savePluginSettings(fileName);
@@ -104,12 +120,13 @@ public class MDialog extends Dialog {
 							try {
 								IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
 								String fileName = prefs.get("FileName", "Empty String");
-								FileWriter writer = new FileWriter(fileName, true);
+								FileWriter writer = new FileWriter(fileName+ ".MTD", true);
 								PrintWriter out = new PrintWriter(writer);
 								out.println("\t</SESSION_DATA>");
 								out.println("</MILES>");
 								out.close();
 								writer.close();
+								XSLTransform(fileName);
 							} catch (IOException e) {
 								
 							}						
@@ -137,15 +154,11 @@ public class MDialog extends Dialog {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				System.out.println("Cancel Button Clicked");
 				parent.getShell().dispose();
 			}
 
 			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void widgetDefaultSelected(SelectionEvent e) {}
 		
 		});
 		idText.setFocus();
@@ -154,16 +167,41 @@ public class MDialog extends Dialog {
 			idText.selectAll();
 		}
 		if(asgn != null) asignText.setText(asgn);
-		//if(projLoc != null) projLocText.setText(projLoc);
 	}
 
+	private void XSLTransform(String filenameNoExtension){
+		TransformerFactory tFactory= TransformerFactory.newInstance();
+		PrintWriter p = null; 
+		try {
+			p = new PrintWriter(new FileWriter("c:\\log.txt"));
+			IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
+			String fileName = prefs.get("FileName", "");
+			//String xslFile = prefs.get("XSL", "");
+			
+			Transformer transformer = tFactory.newTransformer(new StreamSource(XSL_FILE));
+			//Transformer transformer = tFactory.newTransformer(new StreamSource(new StringReader(xslFile)));
+			transformer.transform(new StreamSource(new FileInputStream(fileName + ".MTD")), new StreamResult(new FileOutputStream(fileName + ".html")));
+		} catch (TransformerConfigurationException e) {	
+			e.printStackTrace(p);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace(p);	
+		} catch (TransformerException e) {
+			e.printStackTrace(p);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if(p != null) p.close();
+		}
+	}
+		
 	protected void writeSessionInfoToFile(String fileName) {
 		IProject myProject = ResourcesPlugin.getWorkspace().getRoot().getProject("MILESData");
 		try {
 			if(!myProject.exists()) myProject.create(null);
 			if(!myProject.isOpen()) myProject.open(null);
 
-			IFile sessionFile =  myProject.getFile(fileName);
+			IFile sessionFile =  myProject.getFile(fileName + ".MTD");
 			String startOfSession = CreateStartOfSessionString();
 			StringBufferInputStream s = new StringBufferInputStream(startOfSession);
 			sessionFile.create(s, false, null);			
@@ -173,9 +211,15 @@ public class MDialog extends Dialog {
 	}	
 
 	private String CreateStartOfSessionString() {
-		return XML_HEADER + "\r\n" + DOC_TYPE_HEADER + "\r\n" 
-				+ "<MILES>\r\n\t<SESSION_INFO>\r\n\t\t<SESSION_ID>\r\n\t\t\t" 
-				+ time + "\r\n\t\t</SESSION_ID>\r\n\t\t<STUDENT_ID>\r\n\t\t\t" 
+		SimpleDateFormat format = new SimpleDateFormat("EEE, MMM d, yyyy 'at' HH:mm:ss z");
+		//IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
+		//String fileName = prefs.get("DTD", "");
+		//String docTypeHeader = "<!DOCTYPE MILES SYSTEM \"" + fileName + "\">";
+		String docTypeHeader = "<!DOCTYPE MILES PUBLIC \"-//AU//DTD LTiE//EN\" \"http://io.acad.athabascau.ca/~stevenka13/MILES.dtd\">";
+
+		return XML_HEADER + "\r\n" + docTypeHeader + "\r\n" 
+				+ "<MILES>\r\n\t<SESSION_INFO>\r\n\t\t<SESSION_START_TIME UTC=\""+ calendar.getTimeInMillis() +"\">\r\n\t\t\t" 
+				+ format.format(calendar.getTime()) + "\r\n\t\t</SESSION_START_TIME>\r\n\t\t<STUDENT_ID>\r\n\t\t\t" 
 				+ id + "\r\n\t\t</STUDENT_ID>" + "\r\n\t\t<ASSIGNMENT>\r\n\t\t\t"
 				+ asgn + "\r\n\t\t</ASSIGNMENT>\r\n\t</SESSION_INFO>\r\n\t<SESSION_DATA>\r\n";
 	}
@@ -200,10 +244,6 @@ public class MDialog extends Dialog {
 		new Label(composite, SWT.NONE).setText("Assignment: ");
 		asignText = new Text(composite, getInputTextStyle());
 		asignText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-//		new Label(composite, SWT.NONE).setText("Project Location: ");
-//		projLocText = new Text(composite, getInputTextStyle());
-//		projLocText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		applyDialogFont(composite);
 		return composite;

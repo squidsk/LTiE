@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--Steve Kalmar 2816596 30/11/2008-->
+<!--Steve Kalmar 2816596 14/03/2012-->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="TIME"/>
 	<xsl:output method="xml" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN" indent="yes"/>
@@ -12,12 +12,14 @@
 		<head xmlns="http://www.w3.org/1999/xhtml">
 			<title>MILES ECLIPSE PLUGIN PROGRAMMING SESSION REPORT</title>
 			<script type="text/javascript">
-				function toggleDiv(divid, callObjID){
-					if(document.getElementById(divid).style.display == 'none'){
-						document.getElementById(divid).style.display = 'block';
+				function toggleDiv(bodyID, headerID, callObjID){
+					if(document.getElementById(bodyID).style.display == 'none'){
+						document.getElementById(bodyID).style.display = 'block';
+						document.getElementById(headerID).style.margin = '8 2.5% 0';
 						document.getElementById(callObjID).innerHTML = "Hide";
 					}else{
-						document.getElementById(divid).style.display = 'none';
+						document.getElementById(bodyID).style.display = 'none';
+						document.getElementById(headerID).style.margin = '8 2.5% 8';
 						document.getElementById(callObjID).innerHTML = "Show";
 					}
 				}
@@ -81,6 +83,10 @@
 					background-color: #CEDFEB;
 					width: 100%;
 				}
+				#compile_info, #session_data {
+					padding-top: 8px;
+					padding-bottom: 8px;
+				}
 			</style>
 		</head>
 		<body xmlns="http://www.w3.org/1999/xhtml" style="width:960;">
@@ -95,7 +101,7 @@
 	</xsl:template>
 	<xsl:template match="SESSION_INFO">
 		<div xmlns="http://www.w3.org/1999/xhtml" id="session_info" class="mainBody">
-			<div class="session_info_elements"><h2 style="margin-left:10px;">Session ID: <xsl:value-of select="SESSION_ID"/></h2></div>
+			<div class="session_info_elements"><h2 style="margin-left:10px;">Session Start Time: <xsl:value-of select="SESSION_START_TIME"/></h2></div>
 			<div class="session_info_elements"><h2>Student ID: <xsl:value-of select="STUDENT_ID"/></h2></div>
 			<div class="session_info_elements" style="float:right;"><h2>Assignment: <xsl:value-of select="ASSIGNMENT"/></h2></div>
 		</div>
@@ -107,11 +113,12 @@
 	</xsl:template>
 	<xsl:template match="COMPILE_INSTANCE">
 		<div xmlns="http://www.w3.org/1999/xhtml" class="mainHeader subHeader">
+			<xsl:attribute name="id">h<xsl:apply-templates select="TIME"/></xsl:attribute>
 			<h2>
 				<span style="margin-left:10px;">Compile Instance: <xsl:apply-templates select="TIME"/></span>
 				<a href="javascript:;" class="show_hide">
 					<xsl:attribute name="id">a<xsl:apply-templates select="TIME"/></xsl:attribute>
-					<xsl:attribute name="onclick">toggleDiv('b<xsl:apply-templates select="TIME"/>', 'a<xsl:apply-templates select="TIME"/>')</xsl:attribute>
+					<xsl:attribute name="onclick">toggleDiv('b<xsl:apply-templates select="TIME"/>', 'h<xsl:apply-templates select="TIME"/>', 'a<xsl:apply-templates select="TIME"/>')</xsl:attribute>
 					Hide
 				</a>
 			</h2>

@@ -16,3 +16,4 @@ Bundle-ClassPath: .,
 Import-Package: javax.xml,
  org.eclipse.core.resources,
  org.eclipse.jface.text
+Eclipse-BundleShape: dir
