@@ -1,9 +1,19 @@
 package miles;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Scanner;
+import org.w3c.dom.Document;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
@@ -13,12 +23,18 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.BuildContext;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.uml2.uml.UMLFactory;
+import org.eclipse.core.internal.resources.File;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.apache.commons.lang3.StringEscapeUtils;
 
+@SuppressWarnings("restriction")
 public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.CompilationParticipant {
 	
 	private static final String[] MARKER_ATTRIBUTES = {IMarker.SEVERITY, IMarker.LINE_NUMBER, IMarker.MESSAGE};
@@ -45,14 +61,25 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 						out.println("\t\t\t\t\t<NAME>"+unit.getElementName()+"</NAME>");
 						printFileInternals(unit, out);
 						printFilesProblems(unit, out);
-						out.println("\t\t\t\t\t<SOURCE>"+unit.getSource()+"\r\n\t\t\t\t\t</SOURCE>");
+						out.println("\t\t\t\t\t<SOURCE>"+StringEscapeUtils.escapeHtml4(unit.getSource())+"\r\n\t\t\t\t\t</SOURCE>");
 						out.println("\t\t\t\t</FILE>");
 					}
-//					for(Object obj : project.getNonJavaResources()){
-//						out.println("\t\t\t\t<FILE>");
-//						out.println("\t\t\t\t\t<NAME>"+obj.getClass().getName()+"</NAME>");
-//						out.println("\t\t\t\t</FILE>");
-//					}
+					for(Object obj : project.getNonJavaResources()){
+						if(obj instanceof File){
+							File file = (File)obj;
+							if(file.getFileExtension().equals("uml")){
+								out.println("\t\t\t\t<FILE>");
+								out.println("\t\t\t\t\t<NAME>"+file.getName()+"</NAME>");
+								out.println("\t\t\t\t\t<SOURCE>");
+								Scanner s = new Scanner(new FileInputStream(file.getRawLocation().toString()));
+								s.useDelimiter("\\Z");
+								out.println("\t\t\t\t\t" + StringEscapeUtils.escapeHtml4(s.next()));
+								s.close();
+								out.println("\t\t\t\t\t</SOURCE>");
+								out.println("\t\t\t\t</FILE>");
+							}
+						}
+					}
 					out.println("\t\t\t</FILES>");
 				}
 			}
@@ -64,6 +91,30 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 		}
 		
 		// do nothing by default
+	}
+	
+	private void processUMLFile(String filename){
+		try {
+			Reader xml = new FileReader(filename);
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			dbf.setNamespaceAware(true);
+			dbf.setValidating(true);
+			
+			org.eclipse.uml2.uml.Model m = UMLFactory.eINSTANCE.createModel();
+			
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			
+			
+			Document dom = db.parse(new InputSource(xml));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (SAXException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void printFilesProblems(ICompilationUnit unit, PrintWriter out)

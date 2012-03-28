@@ -7,13 +7,14 @@ Bundle-Activator: miles.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.jdt.core,
- org.eclipse.jdt.core
+ org.eclipse.jdt.core,
+ org.eclipse.uml2.uml
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ClassPath: .,
- forms-1.3.0.jar,
- miglayout15-swing.jar
+ commons-lang3-3.1.jar
 Import-Package: javax.xml,
+ org.eclipse.core.internal.resources,
  org.eclipse.core.resources,
  org.eclipse.jface.text
 Eclipse-BundleShape: dir

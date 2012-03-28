@@ -8,11 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringBufferInputStream;
-import java.io.StringReader;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-
-import javax.swing.JOptionPane;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -106,7 +103,6 @@ public class MDialog extends Dialog {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				//System.out.println("OK Button Clicked");
 				if(validInput()){
 					String fileName = "MILES_"+ id + "_" + asgn + "_" + time;
 					
