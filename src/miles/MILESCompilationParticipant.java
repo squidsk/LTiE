@@ -2,18 +2,12 @@ package miles;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.Reader;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Scanner;
-import org.w3c.dom.Document;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.ParserConfigurationException;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
@@ -23,21 +17,19 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.BuildContext;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.uml2.uml.UMLFactory;
 import org.eclipse.core.internal.resources.File;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 @SuppressWarnings("restriction")
 public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.CompilationParticipant {
 	
 	private static final String[] MARKER_ATTRIBUTES = {IMarker.SEVERITY, IMarker.LINE_NUMBER, IMarker.MESSAGE};
+	private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
 	public MILESCompilationParticipant() {}
 	
@@ -45,131 +37,162 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 	
 	public void buildFinished(IJavaProject project) {
 		try {
+			StringBuilder sb = new StringBuilder();
+			PreProcessing(project.getElementName());
 			IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
-			String fileName = prefs.get("FileName", "Empty String") + ".MTD";
+			String fileName = prefs.get("LTiEFileName", "Empty String") + project.getElementName() + ".MTD";
 			PrintWriter out = new PrintWriter(new FileWriter(fileName, true));
-			out.println("\t\t<COMPILE_INSTANCE>");
+			sb.append("<COMPILE_INSTANCE>");
 			Calendar c = Calendar.getInstance();
 			SimpleDateFormat format = new SimpleDateFormat("EEE, MMM d, yyyy 'at' HH:mm:ss z");
-			out.println("\t\t\t<TIME UTC=\"" + c.getTimeInMillis() + "\">\r\n\t\t\t\t" + format.format(c.getTime()) + "\r\n\t\t\t</TIME>");
+			sb.append("<TIME UTC=\"" + c.getTimeInMillis() + "\">" + format.format(c.getTime()) + "</TIME>");
 			IPackageFragment[] packages = project.getPackageFragments();
 			for(IPackageFragment aPackage : packages){
 				if(aPackage.getKind() == IPackageFragmentRoot.K_SOURCE){
-					out.println("\t\t\t<FILES>");
+					String packageName = aPackage.getElementName().isEmpty() ? "default package" : aPackage.getElementName();
+					System.out.println("Package Fragment Name: " + packageName);
+					sb.append("<PACKAGE>");
+					sb.append("<NAME>"+ packageName +"</NAME>");
+					sb.append("<FILES>");
 					for(ICompilationUnit unit : aPackage.getCompilationUnits()){
-						out.println("\t\t\t\t<FILE>");
-						out.println("\t\t\t\t\t<NAME>"+unit.getElementName()+"</NAME>");
-						printFileInternals(unit, out);
-						printFilesProblems(unit, out);
-						out.println("\t\t\t\t\t<SOURCE>"+StringEscapeUtils.escapeHtml4(unit.getSource())+"\r\n\t\t\t\t\t</SOURCE>");
-						out.println("\t\t\t\t</FILE>");
+						sb.append("<FILE>");
+						sb.append("<NAME>"+unit.getElementName()+"</NAME>");
+						printFileInternals(unit, sb);
+						printFilesProblems(unit, sb);
+						sb.append("<SOURCE>"+StringEscapeUtils.escapeHtml4(unit.getSource())+"</SOURCE>");
+						sb.append("</FILE>");
 					}
-					for(Object obj : project.getNonJavaResources()){
-						if(obj instanceof File){
-							File file = (File)obj;
-							if(file.getFileExtension().equals("uml")){
-								out.println("\t\t\t\t<FILE>");
-								out.println("\t\t\t\t\t<NAME>"+file.getName()+"</NAME>");
-								out.println("\t\t\t\t\t<SOURCE>");
-								Scanner s = new Scanner(new FileInputStream(file.getRawLocation().toString()));
-								s.useDelimiter("\\Z");
-								out.println("\t\t\t\t\t" + StringEscapeUtils.escapeHtml4(s.next()));
-								s.close();
-								out.println("\t\t\t\t\t</SOURCE>");
-								out.println("\t\t\t\t</FILE>");
-							}
-						}
-					}
-					out.println("\t\t\t</FILES>");
+					ProcessUMLFiles(aPackage.getNonJavaResources(), sb);
+					sb.append("</FILES>");
+					sb.append("</PACKAGE>");
 				}
 			}
-			out.println("\t\t</COMPILE_INSTANCE>");
+			Object[] nonJavaResources = project.getNonJavaResources();
+			if(nonJavaResources !=null && nonJavaResources.length > 0){
+				sb.append("<FILES>");
+				ProcessUMLFiles(nonJavaResources, sb);
+				sb.append("</FILES>");
+			}
+			sb.append("</COMPILE_INSTANCE>");
+			System.out.println(XMLFormatter.format(sb.toString()));
+			out.write(XMLFormatter.format(sb.toString()));
 			out.close();
 		} catch (Exception e){
 			e.printStackTrace();
 			System.out.println("Threw an error.");
 		}
-		
-		// do nothing by default
 	}
 	
-	private void processUMLFile(String filename){
-		try {
-			Reader xml = new FileReader(filename);
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			dbf.setNamespaceAware(true);
-			dbf.setValidating(true);
-			
-			org.eclipse.uml2.uml.Model m = UMLFactory.eINSTANCE.createModel();
-			
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			
-			
-			Document dom = db.parse(new InputSource(xml));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+	private void ProcessUMLFiles(Object[] packageFragments, StringBuilder sb) throws FileNotFoundException {
+		for(Object obj : packageFragments){
+			if(obj instanceof File){
+				File file = (File)obj;
+				if(file.getFileExtension().equals("uml")){
+					sb.append("<FILE>");
+					sb.append("<NAME>"+file.getName()+"</NAME>");
+					sb.append("<SOURCE>");
+					Scanner s = new Scanner(new FileInputStream(file.getRawLocation().toString()));
+					s.useDelimiter("\\Z");
+					sb.append(StringEscapeUtils.escapeHtml4(s.next()));
+					s.close();
+					sb.append("</SOURCE>");
+					sb.append("</FILE>");
+				}
+			}
+		}
+
+	}
+	
+	private void PreProcessing(String projectName) {
+		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
+		String fileName = prefs.get("LTiEFileName", null);
+		java.io.File f = new java.io.File(fileName + projectName + ".MTD");
+		if(!f.exists()){
+			String id = "default";
+			String UNCTime;
+			Calendar calendar = Calendar.getInstance();
+			if(fileName != null){
+				int index = fileName.indexOf('_');
+				int index2 = fileName.indexOf('_', index + 1);
+				UNCTime = fileName.substring(index2 + 1, fileName.length()-1);
+				id = fileName.substring(index + 1, index2);
+				calendar.setTimeInMillis(Long.parseLong(UNCTime));
+			}
+
+			try {
+				PrintStream p = new PrintStream(f);
+				p.print(CreateStartOfSessionString(calendar, id, projectName));
+				p.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
-	private void printFilesProblems(ICompilationUnit unit, PrintWriter out)
+	private String CreateStartOfSessionString(Calendar calendar, String id, String asgn) {
+		SimpleDateFormat format = new SimpleDateFormat("EEE, MMM d, yyyy 'at' HH:mm:ss z");
+		String docTypeHeader = "<!DOCTYPE MILES PUBLIC \"-//AU//DTD LTiE//EN\" \"http://io.acad.athabascau.ca/~stevenka13/MILES.dtd\">";
+
+		return XML_HEADER + "\r\n" + docTypeHeader + "\r\n" 
+				+ "<MILES>\r\n\t<SESSION_INFO>\r\n\t\t<SESSION_START_TIME UTC=\""+ calendar.getTimeInMillis() +"\">\r\n\t\t\t" 
+				+ format.format(calendar.getTime()) + "\r\n\t\t</SESSION_START_TIME>\r\n\t\t<STUDENT_ID>\r\n\t\t\t" 
+				+ id + "\r\n\t\t</STUDENT_ID>" + "\r\n\t\t<ASSIGNMENT>\r\n\t\t\t"
+				+ asgn + "\r\n\t\t</ASSIGNMENT>\r\n\t</SESSION_INFO>\r\n\t<SESSION_DATA>\r\n";
+	}
+
+	private void printFilesProblems(ICompilationUnit unit, StringBuilder sb)
 			throws JavaModelException, CoreException {
 		IResource javaSourceFile = unit.getUnderlyingResource();
 		IMarker[] markers = javaSourceFile.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
 		if(markers != null && markers.length > 0){
-			out.println("\t\t\t\t\t<COMPILE_PROBLEMS>");
+			sb.append("<COMPILE_PROBLEMS>");
 			for(IMarker marker : markers){
 				Object[] attribs = marker.getAttributes(MARKER_ATTRIBUTES);
-				out.println("\t\t\t\t\t\t" + ProblemXML(attribs[0], attribs[1], attribs[2]));
+				sb.append("" + ProblemXML(attribs[0], attribs[1], attribs[2]));
 			}
-			out.println("\t\t\t\t\t</COMPILE_PROBLEMS>");
+			sb.append("</COMPILE_PROBLEMS>");
 		}
 	}
 	
-	private void printFileInternals(ICompilationUnit unit, PrintWriter out) throws JavaModelException {
+	private void printFileInternals(ICompilationUnit unit, StringBuilder sb) throws JavaModelException {
 		IType[] allTypes = unit.getAllTypes();
 		if(allTypes.length > 0){
-			out.println("\t\t\t\t\t<TYPES>");
+			sb.append("<TYPES>");
 			for(IType type : allTypes){
-				out.println("\t\t\t\t\t\t<TYPE NAME=\""+ type.getElementName() + "\">");
-				printSuperclassAndInterfaces(type, out);
-				printMethods(type, out);
-				out.println("\t\t\t\t\t\t</TYPE>");
+				sb.append("<TYPE NAME=\""+ type.getElementName() + "\">");
+				printSuperclassAndInterfaces(type, sb);
+				printMethods(type, sb);
+				sb.append("</TYPE>");
 			}
-			out.println("\t\t\t\t\t</TYPES>");
+			sb.append("</TYPES>");
 		}
 	}
 
-	private void printMethods(IType type, PrintWriter out)  throws JavaModelException {
+	private void printMethods(IType type, StringBuilder sb)  throws JavaModelException {
 		IMethod[] methods = type.getMethods();
 		if(methods.length > 0){
-			out.println("\t\t\t\t\t\t\t<METHODS>");
+			sb.append("<METHODS>");
 			for (IMethod method : methods) {
-				out.println("\t\t\t\t\t\t\t\t<METHOD NAME=\"" + method.getElementName()+"\">");
-				out.println("\t\t\t\t\t\t\t\t\t<SIGNATURE>" + method.getSignature()+"</SIGNATURE>");
-				out.println("\t\t\t\t\t\t\t\t\t<RETURNTYPE>" + method.getReturnType()+"</RETURNTYPE>");
-				out.println("\t\t\t\t\t\t\t\t</METHOD>");
+				sb.append("<METHOD NAME=\"" + method.getElementName()+"\">");
+				sb.append("<SIGNATURE>" + method.getSignature()+"</SIGNATURE>");
+				sb.append("<RETURNTYPE>" + method.getReturnType()+"</RETURNTYPE>");
+				sb.append("</METHOD>");
 			}
-			out.println("\t\t\t\t\t\t\t</METHODS>");
+			sb.append("</METHODS>");
 		}
 	}
 
-	private void printSuperclassAndInterfaces(IType type, PrintWriter out)
+	private void printSuperclassAndInterfaces(IType type, StringBuilder sb)
 			throws JavaModelException {
 		String superclass = type.getSuperclassName();
-		if(superclass != null) out.println("\t\t\t\t\t\t\t<SUPERCLASS>"+superclass+"</SUPERCLASS>");
+		if(superclass != null) sb.append("<SUPERCLASS>"+superclass+"</SUPERCLASS>");
 		String[] interfaces = type.getSuperInterfaceNames();
 		if(interfaces.length > 0){
-			out.println("\t\t\t\t\t\t\t<INTERFACES>");
+			sb.append("<INTERFACES>");
 			for(String anInterface : interfaces){
-				out.println("\t\t\t\t\t\t\t\t<INTERFACE>"+ anInterface + "</INTERFACE>");
+				sb.append("<INTERFACE>"+ anInterface + "</INTERFACE>");
 			}
-			out.println("\t\t\t\t\t\t\t</INTERFACES>");
+			sb.append("</INTERFACES>");
 		}
 	}
 	
@@ -183,4 +206,10 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 	public boolean isActive(IJavaProject project) {
 		return true;
 	}
+	
+//	private String getIndent(int indentDepth){
+//		String indent = "";
+//		for(int i=0; i<indentDepth; i+=1) indent += '\t';
+//		return indent;
+//	}
 }

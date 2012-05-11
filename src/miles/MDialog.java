@@ -1,21 +1,9 @@
 package miles;
 
 //import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.StringBufferInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -36,13 +24,12 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.PlatformUI;
 
 @SuppressWarnings("deprecation")
 public class MDialog extends Dialog {
 	
 	private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-	private static final String XSL_FILE = "http://io.acad.athabascau.ca/~stevenka13/MILES.xsl";
+	//private static final String XSL_FILE = "http://io.acad.athabascau.ca/~stevenka13/MILES.xsl";
 	//private String DOC_TYPE_HEADER = "<!DOCTYPE MILES SYSTEM \"MILES.dtd\">";
 
 	private String title;
@@ -104,31 +91,12 @@ public class MDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(validInput()){
-					String fileName = "MILES_"+ id + "_" + asgn + "_" + time;
+					String fileName = "MILES_" + id + "_" + asgn + "_" + time;
+					String fileName2 = "LTiE_" + id + "_" + time + "_";
 					
-					writeSessionInfoToFile(fileName);
-					savePluginSettings(fileName);
-					Runtime.getRuntime().addShutdownHook(new Thread() {
-						public void run() {
-							if (PlatformUI.isWorkbenchRunning()) {
-								PlatformUI.getWorkbench().close();
-							}
-							try {
-								IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
-								String fileName = prefs.get("FileName", "Empty String");
-								FileWriter writer = new FileWriter(fileName+ ".MTD", true);
-								PrintWriter out = new PrintWriter(writer);
-								out.println("\t</SESSION_DATA>");
-								out.println("</MILES>");
-								out.close();
-								writer.close();
-								XSLTransform(fileName);
-							} catch (IOException e) {
-								
-							}						
-						}
-					});
-
+					//writeSessionInfoToFile(fileName);
+					savePluginSettings(fileName, "FileName");
+					savePluginSettings(fileName2, "LTiEFileName");
 					parent.getShell().dispose();
 				} else {
 					showMessage();
@@ -164,32 +132,6 @@ public class MDialog extends Dialog {
 		}
 		if(asgn != null) asignText.setText(asgn);
 	}
-
-	private void XSLTransform(String filenameNoExtension){
-		TransformerFactory tFactory= TransformerFactory.newInstance();
-		PrintWriter p = null; 
-		try {
-			p = new PrintWriter(new FileWriter("c:\\log.txt"));
-			IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
-			String fileName = prefs.get("FileName", "");
-			//String xslFile = prefs.get("XSL", "");
-			
-			Transformer transformer = tFactory.newTransformer(new StreamSource(XSL_FILE));
-			//Transformer transformer = tFactory.newTransformer(new StreamSource(new StringReader(xslFile)));
-			transformer.transform(new StreamSource(new FileInputStream(fileName + ".MTD")), new StreamResult(new FileOutputStream(fileName + ".html")));
-		} catch (TransformerConfigurationException e) {	
-			e.printStackTrace(p);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace(p);	
-		} catch (TransformerException e) {
-			e.printStackTrace(p);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			if(p != null) p.close();
-		}
-	}
 		
 	protected void writeSessionInfoToFile(String fileName) {
 		IProject myProject = ResourcesPlugin.getWorkspace().getRoot().getProject("MILESData");
@@ -208,9 +150,6 @@ public class MDialog extends Dialog {
 
 	private String CreateStartOfSessionString() {
 		SimpleDateFormat format = new SimpleDateFormat("EEE, MMM d, yyyy 'at' HH:mm:ss z");
-		//IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
-		//String fileName = prefs.get("DTD", "");
-		//String docTypeHeader = "<!DOCTYPE MILES SYSTEM \"" + fileName + "\">";
 		String docTypeHeader = "<!DOCTYPE MILES PUBLIC \"-//AU//DTD LTiE//EN\" \"http://io.acad.athabascau.ca/~stevenka13/MILES.dtd\">";
 
 		return XML_HEADER + "\r\n" + docTypeHeader + "\r\n" 
@@ -221,7 +160,7 @@ public class MDialog extends Dialog {
 	}
 
 	private void showMessage() {
-		MessageDialog.openError(super.getShell(), "Error!", "Values for the student ID number and the assignment!");
+		MessageDialog.openError(super.getShell(), "Error!", "Enter a user ID!");
 	}
 	
 	/*
@@ -258,10 +197,10 @@ public class MDialog extends Dialog {
 		return SWT.SINGLE | SWT.BORDER;
 	}
 	
-	private void savePluginSettings(String fileName) {
+	private void savePluginSettings(String fileName, String settingName) {
 		IFile myFile = ResourcesPlugin.getWorkspace().getRoot().getProject("MILESData").getFile(fileName);	
 		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
-		prefs.put("FileName", myFile.getRawLocation().toString());
+		prefs.put(settingName, myFile.getRawLocation().toString());
 	}
 	
 //	private void loadPluginSettings() {
