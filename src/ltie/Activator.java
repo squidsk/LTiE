@@ -1,4 +1,4 @@
-package miles;
+package ltie;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;

@@ -1,4 +1,4 @@
-package miles;
+package ltie;
 
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IWorkbenchWindow;

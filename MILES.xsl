@@ -49,7 +49,7 @@
 					float: left;
 					font: bold 12px Arial,Tahoma,Calibri,Verdana,Geneva,sans-serif;
 					margin-top: 8px;
-					width: 95%;
+					width: 99%;
 				}
 				.mainBody {
 					border: 1px solid #c4c4c4;
@@ -58,7 +58,7 @@
 					display: block;
 					float: left;
 					position: relative;
-					width: 95%;
+					width: 99%;
 					box-shadow: -2px 2px 2px #c8c8c8;
 					font: 11px Tahoma,Calibri,Verdana,Geneva,sans-serif;
 					color: #417394;
@@ -74,10 +74,10 @@
 					margin-right:10px;
 				}
 				.subHeader {
-					margin: 8px 2.5% 0px;
+					margin: 8px 0.5% 0px;
 				}
 				.subBody {
-					margin: 0px 2.5% 10px;
+					margin: 0px 0.5% 10px;
 				}
 				.file {
 					background-color: #CEDFEB;
@@ -125,11 +125,15 @@
 		</div>
 		<div xmlns="http://www.w3.org/1999/xhtml" class="mainBody subBody">
 			<xsl:attribute name="id">b<xsl:apply-templates select="TIME"/></xsl:attribute>
+			<xsl:apply-templates select="PACKAGE"/>
 			<xsl:apply-templates select="FILES/FILE"/>
 		</div>
 	</xsl:template>
 	<xsl:template match="TIME">
 		<xsl:value-of select="normalize-space(text()[1])"/>
+	</xsl:template>
+	<xsl:template match="PACKAGE">
+		<xsl:apply-templates select="FILES/FILE"/>
 	</xsl:template>
 	<xsl:template match="FILES/FILE">
 			<div xmlns="http://www.w3.org/1999/xhtml" class="file"><xsl:value-of select="NAME"/></div>

@@ -1,4 +1,4 @@
-package miles;
+package ltie;
 
 //import org.apache.xml.serialize.OutputFormat;
 //import org.apache.xml.serialize.XMLSerializer;
@@ -35,8 +35,6 @@ public final class XMLFormatter {
                 (DOMImplementationLS)registry.getDOMImplementation("LS");
 
             LSSerializer writer = impl.createLSSerializer();
-//            DOMStringList s = writer.getDomConfig().getParameterNames();
-//            for(int i=0; i<s.getLength(); i+=1) System.out.println(s.item(i));
             writer.getDomConfig().setParameter("format-pretty-print", Boolean.TRUE);
             writer.getDomConfig().setParameter("xml-declaration", Boolean.FALSE);
             LSOutput output = impl.createLSOutput();
@@ -45,17 +43,13 @@ public final class XMLFormatter {
             writer.write(document, output);
             return bos.toString();
         } catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e.printStackTrace(Constants.writer);
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e.printStackTrace(Constants.writer);
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e.printStackTrace(Constants.writer);
 		} catch (ClassCastException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e.printStackTrace(Constants.writer);
 		}
         return null;
     }

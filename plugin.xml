@@ -7,20 +7,20 @@
          point="org.eclipse.core.runtime.applications">
       <application>
          <run
-               class="miles.Application">
+               class="ltie.Application">
          </run>
       </application>
    </extension>
    <extension
          point="org.eclipse.ui.startup">
       <startup
-            class="miles.MILESStartup"></startup>
+            class="ltie.LTiEStartup"></startup>
    </extension>
    <extension
          point="org.eclipse.jdt.core.compilationParticipant">
       <compilationParticipant
-            class="miles.MILESCompilationParticipant"
-            id="MILES.compilationParticipant">
+            class="ltie.LTiECompilationParticipant"
+            id="LTiE.compilationParticipant">
       </compilationParticipant>
    </extension>
 

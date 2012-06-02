@@ -1,4 +1,4 @@
-package miles;
+package ltie;
 
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.application.ActionBarAdvisor;

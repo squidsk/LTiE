@@ -1,4 +1,4 @@
-package miles;
+package ltie;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,12 +26,12 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 @SuppressWarnings("restriction")
-public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.CompilationParticipant {
+public class LTiECompilationParticipant extends org.eclipse.jdt.core.compiler.CompilationParticipant {
 	
 	private static final String[] MARKER_ATTRIBUTES = {IMarker.SEVERITY, IMarker.LINE_NUMBER, IMarker.MESSAGE};
 	private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
-	public MILESCompilationParticipant() {}
+	public LTiECompilationParticipant() {}
 	
 	public void buildStarting(BuildContext[] files, boolean isBatch) {}
 	
@@ -39,9 +39,8 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 		try {
 			StringBuilder sb = new StringBuilder();
 			PreProcessing(project.getElementName());
-			IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
+			IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.BUNDLE_NAME);
 			String fileName = prefs.get("LTiEFileName", "Empty String") + project.getElementName() + ".MTD";
-			PrintWriter out = new PrintWriter(new FileWriter(fileName, true));
 			sb.append("<COMPILE_INSTANCE>");
 			Calendar c = Calendar.getInstance();
 			SimpleDateFormat format = new SimpleDateFormat("EEE, MMM d, yyyy 'at' HH:mm:ss z");
@@ -50,7 +49,7 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 			for(IPackageFragment aPackage : packages){
 				if(aPackage.getKind() == IPackageFragmentRoot.K_SOURCE){
 					String packageName = aPackage.getElementName().isEmpty() ? "default package" : aPackage.getElementName();
-					System.out.println("Package Fragment Name: " + packageName);
+					Constants.writer.println("Package Fragment Name: " + packageName);
 					sb.append("<PACKAGE>");
 					sb.append("<NAME>"+ packageName +"</NAME>");
 					sb.append("<FILES>");
@@ -74,12 +73,11 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 				sb.append("</FILES>");
 			}
 			sb.append("</COMPILE_INSTANCE>");
-			System.out.println(XMLFormatter.format(sb.toString()));
+			PrintWriter out = new PrintWriter(new FileWriter(fileName, true));
 			out.write(XMLFormatter.format(sb.toString()));
 			out.close();
 		} catch (Exception e){
-			e.printStackTrace();
-			System.out.println("Threw an error.");
+			e.printStackTrace(Constants.writer);
 		}
 	}
 	
@@ -104,7 +102,7 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 	}
 	
 	private void PreProcessing(String projectName) {
-		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("MILES");
+		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.BUNDLE_NAME);
 		String fileName = prefs.get("LTiEFileName", null);
 		java.io.File f = new java.io.File(fileName + projectName + ".MTD");
 		if(!f.exists()){
@@ -207,9 +205,4 @@ public class MILESCompilationParticipant extends org.eclipse.jdt.core.compiler.C
 		return true;
 	}
 	
-//	private String getIndent(int indentDepth){
-//		String indent = "";
-//		for(int i=0; i<indentDepth; i+=1) indent += '\t';
-//		return indent;
-//	}
 }

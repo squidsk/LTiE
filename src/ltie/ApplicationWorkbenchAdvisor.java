@@ -1,4 +1,4 @@
-package miles;
+package ltie;
 
 import org.eclipse.ui.application.IWorkbenchWindowConfigurer;
 import org.eclipse.ui.application.WorkbenchAdvisor;

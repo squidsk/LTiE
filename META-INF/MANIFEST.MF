@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: MILES
-Bundle-SymbolicName: MILES; singleton:=true
+Bundle-Name: LTiE
+Bundle-SymbolicName: LTiE; singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: miles.Activator
+Bundle-Activator: ltie.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.jdt.core,
