@@ -150,15 +150,9 @@ public class LTiEDialog extends Dialog {
 	}
 	
 	private void savePluginSettings(String fileName, String settingName) {
-		IFile myFile = ResourcesPlugin.getWorkspace().getRoot().getProject("MILESData").getFile(fileName);	
+		IFile myFile = ResourcesPlugin.getWorkspace().getRoot().getProject(Constants.OUTPUT_FOLDER).getFile(fileName);	
 		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.BUNDLE_NAME);
 		prefs.put(settingName, myFile.getRawLocation().toString());
 	}
 	
-//	private void loadPluginSettings() {
-//		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.BUNDLE_NAME);
-//		  // you might want to call prefs.sync() if you're worried about others changing your settings
-//		  String someStr = prefs.get("ID", "");
-//		  
-//		}
 }

@@ -1,5 +1,6 @@
 package ltie;
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -10,7 +11,7 @@ import org.osgi.framework.BundleContext;
 public class Activator extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "MILES"; //$NON-NLS-1$
+	public static final String PLUGIN_ID = "LTiE"; //$NON-NLS-1$
 
 	// The shared instance
 	private static Activator plugin;
@@ -57,5 +58,10 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
+	}
+	
+	protected void intializeDefaultPreferences(IPreferenceStore store){
+		
+	
 	}
 }

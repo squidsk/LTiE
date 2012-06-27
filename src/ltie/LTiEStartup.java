@@ -7,9 +7,8 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URI;
-import java.net.URL;
-
+//import java.net.URI;
+//import java.net.URL;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -19,9 +18,9 @@ import javax.xml.transform.stream.StreamSource;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
+//import org.eclipse.core.runtime.FileLocator;
+//import org.eclipse.core.runtime.Path;
+//import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.ui.IStartup;
@@ -71,7 +70,7 @@ public class LTiEStartup implements IStartup {
 	}
 
 	private void addShutDownHook() {
-		final String dirName = ResourcesPlugin.getWorkspace().getRoot().getProject("MILESData").getLocation().toString();
+		final String dirName = ResourcesPlugin.getWorkspace().getRoot().getProject(Constants.OUTPUT_FOLDER).getLocation().toString();
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				if (PlatformUI.isWorkbenchRunning()) {
@@ -87,10 +86,9 @@ public class LTiEStartup implements IStartup {
 				} catch (IOException e) {
 					e.printStackTrace(Constants.writer);
 				}						
+				Constants.writer.close();
 			}
-
 		});
-		Constants.writer.close();
 	}
 
 	private void writeClosingXML(String fileName) throws IOException {
@@ -104,7 +102,7 @@ public class LTiEStartup implements IStartup {
 	}
 	
 	private void createProject() {
-		IProject myProject = ResourcesPlugin.getWorkspace().getRoot().getProject("MILESData");
+		IProject myProject = ResourcesPlugin.getWorkspace().getRoot().getProject(Constants.OUTPUT_FOLDER);
 		try {
 			if(!myProject.exists()) myProject.create(null);
 		} catch (CoreException e){

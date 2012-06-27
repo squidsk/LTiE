@@ -23,5 +23,19 @@
             id="LTiE.compilationParticipant">
       </compilationParticipant>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="LTiE.page1"
+            class="ltie.LTiEDatabasePreferencePage"
+            id="LTiE.page"
+            name="Database Information">
+      </page>
+      <page
+            class="ltie.LTiEDefaultPage"
+            id="LTiE.page1"
+            name="LTiE">
+      </page>
+   </extension>
 
 </plugin>

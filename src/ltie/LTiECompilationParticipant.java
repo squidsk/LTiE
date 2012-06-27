@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.Scanner;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -17,6 +18,8 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.BuildContext;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
 import org.eclipse.core.internal.resources.File;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -46,9 +49,10 @@ public class LTiECompilationParticipant extends org.eclipse.jdt.core.compiler.Co
 			SimpleDateFormat format = new SimpleDateFormat("EEE, MMM d, yyyy 'at' HH:mm:ss z");
 			sb.append("<TIME UTC=\"" + c.getTimeInMillis() + "\">" + format.format(c.getTime()) + "</TIME>");
 			IPackageFragment[] packages = project.getPackageFragments();
+			sb.append("<PACKAGES>");
 			for(IPackageFragment aPackage : packages){
 				if(aPackage.getKind() == IPackageFragmentRoot.K_SOURCE){
-					String packageName = aPackage.getElementName().isEmpty() ? "default package" : aPackage.getElementName();
+					String packageName = aPackage.getElementName().isEmpty() ? "default" : aPackage.getElementName();
 					Constants.writer.println("Package Fragment Name: " + packageName);
 					sb.append("<PACKAGE>");
 					sb.append("<NAME>"+ packageName +"</NAME>");
@@ -66,6 +70,7 @@ public class LTiECompilationParticipant extends org.eclipse.jdt.core.compiler.Co
 					sb.append("</PACKAGE>");
 				}
 			}
+			sb.append("</PACKAGES>");
 			Object[] nonJavaResources = project.getNonJavaResources();
 			if(nonJavaResources !=null && nonJavaResources.length > 0){
 				sb.append("<FILES>");
@@ -143,10 +148,11 @@ public class LTiECompilationParticipant extends org.eclipse.jdt.core.compiler.Co
 		IResource javaSourceFile = unit.getUnderlyingResource();
 		IMarker[] markers = javaSourceFile.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
 		if(markers != null && markers.length > 0){
+			Document doc = new Document(unit.getSource());
+			
 			sb.append("<COMPILE_PROBLEMS>");
 			for(IMarker marker : markers){
-				Object[] attribs = marker.getAttributes(MARKER_ATTRIBUTES);
-				sb.append("" + ProblemXML(attribs[0], attribs[1], attribs[2]));
+				printProblemXML(marker, doc, sb);
 			}
 			sb.append("</COMPILE_PROBLEMS>");
 		}
@@ -172,6 +178,19 @@ public class LTiECompilationParticipant extends org.eclipse.jdt.core.compiler.Co
 			sb.append("<METHODS>");
 			for (IMethod method : methods) {
 				sb.append("<METHOD NAME=\"" + method.getElementName()+"\">");
+				ILocalVariable[] vars  = method.getParameters();
+				sb.append("<PARAMETERS>");
+				if(vars.length > 0){
+					for(int i=0; i<vars.length; i+=1){
+						System.out.println(vars[i].toString());
+						System.out.println(vars[i].getSource());
+						sb.append("<PARAMETER>" + vars[i].getSource() + "</PARAMETER>");
+					}
+				} else {
+					sb.append("<PARAMETER>void</PARAMETER>");
+				}
+				sb.append("</PARAMETERS>");
+				//method.gets
 				sb.append("<SIGNATURE>" + method.getSignature()+"</SIGNATURE>");
 				sb.append("<RETURNTYPE>" + method.getReturnType()+"</RETURNTYPE>");
 				sb.append("</METHOD>");
@@ -194,11 +213,33 @@ public class LTiECompilationParticipant extends org.eclipse.jdt.core.compiler.Co
 		}
 	}
 	
-	private String ProblemXML(Object severity, Object lineNumber, Object message){
-		String internal = "LINE=\"" + lineNumber + "\">" + message;
-		if(severity.equals(IMarker.SEVERITY_ERROR)) return "<ERROR " + internal + "</ERROR>";
-		if(severity.equals(IMarker.SEVERITY_WARNING)) return "<WARNING " + internal + "</WARNING>";
-		return "<INFORMATION " + internal + "</INFORMATION>";
+	private void printProblemXML(IMarker marker, Document doc, StringBuilder sb) throws JavaModelException, CoreException {
+		Object[] attribs = marker.getAttributes(MARKER_ATTRIBUTES);
+		String problemType;
+		int lineNumber = 0;
+		int startOfLine = 0;
+		int lineLength = 0;
+		String lineOfCode = "";
+		try {
+			lineNumber = Integer.parseInt(attribs[1].toString()) - 1;
+			startOfLine = doc.getLineOffset(lineNumber);
+			lineLength = doc.getLineLength(lineNumber);
+			lineOfCode = doc.get(startOfLine, lineLength);
+		} catch (NumberFormatException e) {
+			e.printStackTrace(Constants.writer);
+		} catch (BadLocationException e) {
+			e.printStackTrace(Constants.writer);
+		}
+		
+		if(attribs[0].equals(IMarker.SEVERITY_ERROR)) problemType = "ERROR";
+		else if (attribs[0].equals(IMarker.SEVERITY_WARNING)) problemType = "WARNING";
+		else problemType = "INFORMATION";
+
+		sb.append("<" + problemType + ">");
+		sb.append("<LINE>" + attribs[1] + "</LINE>");
+		sb.append("<MESSAGE>" + attribs[2] + "</MESSAGE>");
+		sb.append("<CODELINE>" + lineOfCode.trim() + "</CODELINE>");
+		sb.append("</" + problemType + ">");
 	}
 	
 	public boolean isActive(IJavaProject project) {

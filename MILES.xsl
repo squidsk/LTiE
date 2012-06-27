@@ -89,7 +89,7 @@
 				}
 			</style>
 		</head>
-		<body xmlns="http://www.w3.org/1999/xhtml" style="width:960;">
+		<body xmlns="http://www.w3.org/1999/xhtml" style="width:960px;">
 				<div class="mainHeader"><h2><span style="margin-left:10px;">MILES Session Info</span><a id="sessionShow" href="javascript:;" onclick="toggleDiv('session_info', 'sessionShow')" class="show_hide">Hide</a></h2></div>
 				<xsl:apply-templates select="SESSION_INFO"/>
 				<div class="mainHeader"><h2><span style="margin-left:10px;">MILES Session Info</span><a id="dataShow" href="javascript:;" onclick="toggleDiv('session_data', 'dataShow')" class="show_hide">Hide</a></h2></div>
@@ -113,27 +113,53 @@
 	</xsl:template>
 	<xsl:template match="COMPILE_INSTANCE">
 		<div xmlns="http://www.w3.org/1999/xhtml" class="mainHeader subHeader">
-			<xsl:attribute name="id">h<xsl:apply-templates select="TIME"/></xsl:attribute>
+			<xsl:attribute name="id">h<xsl:value-of select="TIME/@UTC"/></xsl:attribute>
 			<h2>
 				<span style="margin-left:10px;">Compile Instance: <xsl:apply-templates select="TIME"/></span>
 				<a href="javascript:;" class="show_hide">
-					<xsl:attribute name="id">a<xsl:apply-templates select="TIME"/></xsl:attribute>
-					<xsl:attribute name="onclick">toggleDiv('b<xsl:apply-templates select="TIME"/>', 'h<xsl:apply-templates select="TIME"/>', 'a<xsl:apply-templates select="TIME"/>')</xsl:attribute>
+					<xsl:attribute name="id">a<xsl:value-of select="TIME/@UTC"/></xsl:attribute>
+					<xsl:attribute name="onclick">toggleDiv('b<xsl:value-of select="TIME/@UTC"/>', 'h<xsl:value-of select="TIME/@UTC"/>', 'a<xsl:value-of select="TIME/@UTC"/>')</xsl:attribute>
 					Hide
 				</a>
 			</h2>
 		</div>
 		<div xmlns="http://www.w3.org/1999/xhtml" class="mainBody subBody">
-			<xsl:attribute name="id">b<xsl:apply-templates select="TIME"/></xsl:attribute>
-			<xsl:apply-templates select="PACKAGE"/>
-			<xsl:apply-templates select="FILES/FILE"/>
+			<xsl:attribute name="id">b<xsl:value-of select="TIME/@UTC"/></xsl:attribute>
+			<xsl:apply-templates select="PACKAGES"/>
+			<xsl:if test="FILES">
+				<div class="mainHeader subHeader">
+					<h2>
+						<span style="margin-left:10px;">UML File(s)</span>
+					</h2>
+				</div>
+				<div class="mainBody subBody">
+					<xsl:apply-templates select="FILES/FILE"/>
+				</div>
+			</xsl:if>
 		</div>
 	</xsl:template>
 	<xsl:template match="TIME">
 		<xsl:value-of select="normalize-space(text()[1])"/>
 	</xsl:template>
+	<xsl:template match="PACKAGES">
+		<xsl:apply-templates select="PACKAGE"/>
+	</xsl:template>
 	<xsl:template match="PACKAGE">
-		<xsl:apply-templates select="FILES/FILE"/>
+		<div xmlns="http://www.w3.org/1999/xhtml" class="mainHeader subHeader">
+			<xsl:attribute name="id">h<xsl:value-of select="NAME"/></xsl:attribute>
+			<h2>
+				<span style="margin-left:10px;">Package: <xsl:value-of select="NAME"/></span>
+				<a href="javascript:;" class="show_hide">
+					<xsl:attribute name="id">a<xsl:value-of select="NAME"/></xsl:attribute>
+					<xsl:attribute name="onclick">toggleDiv('b<xsl:value-of select="NAME"/>', 'h<xsl:value-of select="NAME"/>', 'a<xsl:value-of select="NAME"/>')</xsl:attribute>
+					Hide
+				</a>
+			</h2>
+		</div>
+		<div xmlns="http://www.w3.org/1999/xhtml" class="mainBody subBody">
+			<xsl:attribute name="id">b<xsl:value-of select="NAME"/></xsl:attribute>
+			<xsl:apply-templates select="FILES/FILE"/>
+		</div>
 	</xsl:template>
 	<xsl:template match="FILES/FILE">
 			<div xmlns="http://www.w3.org/1999/xhtml" class="file"><xsl:value-of select="NAME"/></div>
@@ -144,7 +170,7 @@
 				</div>
 				<div style="width:100%;">
 					<div style="margin-left: 10px; font-weight:bold;">Source</div>
-					<pre style="margin-left: 10px;"><xsl:value-of select="SOURCE"/></pre>
+					<pre style="margin-left: 10px; overflow:auto"><xsl:value-of select="SOURCE"/></pre>
 				</div>
 			</div>
 	</xsl:template>
@@ -161,12 +187,12 @@
 		</div>
 	</xsl:template>
 	<xsl:template match="ERROR">
-		<div xmlns="http://www.w3.org/1999/xhtml" style="color:red;">Error @ Line <xsl:value-of select="@LINE"/>: <xsl:value-of select="."/></div>
+		<div xmlns="http://www.w3.org/1999/xhtml" style="color:red;">Error @ Line <xsl:value-of select="LINE"/>: <xsl:value-of select="MESSAGE"/></div>
 	</xsl:template>
 	<xsl:template match="WARNING">
-		<div xmlns="http://www.w3.org/1999/xhtml" style="color:orange;">Warning @ Line <xsl:value-of select="@LINE"/>: <xsl:value-of select="."/></div>
+		<div xmlns="http://www.w3.org/1999/xhtml" style="color:orange;">Warning @ Line <xsl:value-of select="LINE"/>: <xsl:value-of select="MESSAGE"/></div>
 	</xsl:template>
 	<xsl:template match="INFORMATION">
-		<div xmlns="http://www.w3.org/1999/xhtml">Information @ Line <xsl:value-of select="@LINE"/>: <xsl:value-of select="."/></div>
+		<div xmlns="http://www.w3.org/1999/xhtml">Information @ Line <xsl:value-of select="LINE"/>: <xsl:value-of select="MESSAGE"/></div>
 	</xsl:template>
 </xsl:stylesheet>
